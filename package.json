@@ -1,0 +1,16 @@
+{
+  "name": "agora",
+  "description": "Backend for the agora app",
+  "author": "Guillaume Boniface <guillaume.boniface@gmail.com>",
+  "dependencies": {
+    "pg": "*"
+  },
+  "scripts": {
+    "test": "node test/script.js"
+  },
+  "devDependencies": {
+    "pg": "*"
+  },
+  "preferGlobal": true,
+  "private": true
+}
