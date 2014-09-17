@@ -3,18 +3,19 @@ var pg = require('pg'),
     summaryContract = require('./summaryContract'),
     Q = require('q');
 
-var sqlCreateSummarizeTableQuery = function(tableName){
+var sqlCreateSummarizeTableString = function(tableName){
   return "CREATE TABLE " + tableName + " (" +
-  summaryContract.colId + " SERIAL," +
-  summaryContract.colSourceText + " TEXT NOT NULL," +
-  summaryContract.colUrl + " TEXT NOT NULL," +
-  summaryContract.colModel + " TEXT," +
-  summaryContract.colModelParam + " TEXT," +
+  summaryContract.colId + " SERIAL, " +
+  summaryContract.colSourceText + " TEXT NOT NULL, " +
+  summaryContract.colUrl + " TEXT NOT NULL, " +
+  summaryContract.colModel + " TEXT, " +
+  summaryContract.colModelParam + " TEXT, " +
+  summaryContract.colSummary + " TEXT NOT NULL," +
   " UNIQUE (" + summaryContract.colSourceText + ", " + summaryContract.colModel + ", " +
-  summaryContract.colModelParam + ") );";
+  summaryContract.colModelParam + "));";
 }
 
-var sqlCreateSummarizeTable = sqlCreateSummarizeTableQuery(summaryContract.tableName);
+var sqlCreateSummarizeTable = sqlCreateSummarizeTableString(summaryContract.tableName);
 
 var clientPromise = Q.promise(function(resolve, reject, notify){
   pg.connect(dbConnect, function(err, client, done){
@@ -38,32 +39,53 @@ var createSummaryTable = function(client){
   });
 }
 
-var promiseQueryBuilder = function(queryString, deferred){
-  return function(client){
+
+/**
+Utility function to allow chained query. You can pass a Query queryString
+or a function that will take a result as argument and return a queryString.
+**/
+var promiseQueryBuilder = function(queryBuilder){
+  return function(client, result){
+    var queryString = queryBuilder && typeof(queryBuilder) == 'function' ? queryBuilder(result)
+      : queryBuilder;
     return Q.promise(function(resolve, reject, notify){
       client.query(queryString, function(err, result){
         if(err){
-          if(deferred){
-            deferred.reject(err)
-          };
           reject(err);
         } else {
-          if(deferred){
-            deferred.resolve(result);
-          }
-          resolve(client);
+          resolve(client, result);
         }
       });
     });
   }
 }
 
+var buildSQLInsertString = function(tableName, columns, data){
+  var result = "INSERT into " + tableName;
+  if( columns ){
+    result += " (";
+    for( c in columns ){
+      result += columns[c] + ", ";
+    }
+    result = result.substring(0, result.length - 2) + ")"
+  }
+  result += " VALUES (";
+  for( d in data ){
+    result += data[d] + ", "
+  }
+  //console.log(result.substring(0, result.length - 2) + ");");
+  return result.substring(0, result.length - 2) + ");";
+}
+
+//console.log(sqlCreateSummarizeTable);
+
 module.exports = {
   sqlCreateSummarizeTable: sqlCreateSummarizeTable,
-  sqlCreateSummarizeTableQuery: sqlCreateSummarizeTableQuery,
+  sqlCreateSummarizeTableString: sqlCreateSummarizeTableString,
   clientPromise: clientPromise,
   createSummaryTable: createSummaryTable,
-  promiseQueryBuilder: promiseQueryBuilder
+  promiseQueryBuilder: promiseQueryBuilder,
+  buildSQLInsertString: buildSQLInsertString
 }
     
 

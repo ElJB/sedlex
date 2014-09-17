@@ -4,7 +4,8 @@ var summary = {
 	colUrl: "source_url",
 	colSourceText: "source_text",
 	colModel: "model",
-	colModelParam: "model_param"
+	colModelParam: "model_param",
+	colSummary: "summary"
 };
 
 module.exports = summary;
