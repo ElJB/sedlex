@@ -3,7 +3,8 @@ var pg = require('pg'),
     summaryContract = require('./summaryContract'),
     Q = require('q');
 
-var sqlCreateSummarizeTable = "CREATE TABLE " + summaryContract.tableName + " (" +
+var sqlCreateSummarizeTableQuery = function(tableName){
+  return "CREATE TABLE " + tableName + " (" +
   summaryContract.colId + " SERIAL," +
   summaryContract.colSourceText + " TEXT NOT NULL," +
   summaryContract.colUrl + " TEXT NOT NULL," +
@@ -11,20 +12,19 @@ var sqlCreateSummarizeTable = "CREATE TABLE " + summaryContract.tableName + " ("
   summaryContract.colModelParam + " TEXT," +
   " UNIQUE (" + summaryContract.colSourceText + ", " + summaryContract.colModel + ", " +
   summaryContract.colModelParam + ") );";
-
-var clientPromise = function(){
-  return Q.promise(function(resolve, reject, notify){
-    pg.connect(dbConnect, function(err, client, done){
-      if(err){
-        console.log("Couldn't connect to postgress");
-      } else {
-
-        client.pQuery = promiseQuery;
-        resolve(client);
-      }
-    });
-  });
 }
+
+var sqlCreateSummarizeTable = sqlCreateSummarizeTableQuery(summaryContract.tableName);
+
+var clientPromise = Q.promise(function(resolve, reject, notify){
+  pg.connect(dbConnect, function(err, client, done){
+    if(err){
+      console.log("Couldn't connect to postgress");
+    } else {
+      resolve(client);
+    }
+  });
+});
 
 var createSummaryTable = function(client){
   return Q.promise(function(resolve,reject, notify){
@@ -38,25 +38,32 @@ var createSummaryTable = function(client){
   });
 }
 
-var promiseQuery = function(queryString){
+var promiseQueryBuilder = function(queryString, deferred){
   return function(client){
-    Q.promise(resolve, reject, notify){
+    return Q.promise(function(resolve, reject, notify){
       client.query(queryString, function(err, result){
         if(err){
+          if(deferred){
+            deferred.reject(err)
+          };
           reject(err);
         } else {
-          resolve(result);
+          if(deferred){
+            deferred.resolve(result);
+          }
+          resolve(client);
         }
       });
-    }
+    });
   }
 }
 
 module.exports = {
   sqlCreateSummarizeTable: sqlCreateSummarizeTable,
+  sqlCreateSummarizeTableQuery: sqlCreateSummarizeTableQuery,
   clientPromise: clientPromise,
   createSummaryTable: createSummaryTable,
-  promiseQuery: promiseQuery
+  promiseQueryBuilder: promiseQueryBuilder
 }
     
 
