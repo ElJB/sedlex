@@ -6,7 +6,7 @@
     "pg": "*"
   },
   "scripts": {
-    "test": "node test/script.js"
+    "test": "DEBUG=true node test/script.js"
   },
   "devDependencies": {
     "pg": "*"

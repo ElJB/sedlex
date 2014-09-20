@@ -1,31 +1,30 @@
 var pg = require('pg'),
 	dbConnect = require('../res/settings.js').db,
 	pg = require('../data/postgresHelper.js'),
-	summaryContract = require('../data/summaryContract'),
+	sourceContract = require('../data/summaryContract').source,
 	assert = require('assert');
 	Q = require('q');
 
-var testTableName = "test_summarize";
+sourceContract.tableName = "test_source";
 
-var sqlCreateSummarizeTable = pg.sqlCreateSummarizeTableString(testTableName);
-
-pg.clientPromise
-	.then(pg.promiseQueryBuilder(sqlCreateSummarizeTable))
-	.then(pg.promiseQueryBuilder(pg.buildSQLInsertString(testTableName,
-		[summaryContract.colSourceText,
-			summaryContract.colUrl,
-			summaryContract.colSummary],
+pg.queryPromise(sourceContract.createDbString())
+	.then(pg.chainQueryPromise(pg.buildSQLInsertString(sourceContract.tableName,
+		sourceContract.getColumns(),
 		["'This is not a summary'",
 			"'http://www.notasummary.com'",
-			"'this != summary'"])))
-	.then(pg.promiseQueryBuilder("SELECT * FROM " + testTableName))
+			"'llpp'",
+			"'2000-01-01'"])))
+	.then(pg.chainQueryPromise("SELECT * FROM " + sourceContract.tableName))
 	.then(readTest)
-	.then(pg.promiseQueryBuilder("DROP TABLE " + testTableName))
+	.then(pg.chainQueryPromise("DROP TABLE " + sourceContract.tableName))
+	.then(function(result){
+		console.log("testDb: OK");
+	})
 	.catch(function(err){
-		console.log(err);
+		console.log(err.stack);
 	});
 
-var readTest = function(client, result){
+var readTest = function(result){
 	assert(result.rowCount);
 	return Q.promise(function(resolve, reject, notify){
 		resolve(client);
