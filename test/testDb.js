@@ -13,7 +13,13 @@ pg.queryPromise(sourceContract.createDbString())
 		["'This is not a summary'",
 			"'http://www.notasummary.com'",
 			"'llpp'",
-			"'2000-01-01'"])))
+			"'2000-01-01'",
+			"2",
+			"3000",
+			"1",
+			"'1erelecture'",
+			"'assemblee'",
+			"'true'"])))
 	.then(pg.chainQueryPromise("SELECT * FROM " + sourceContract.tableName))
 	.then(readTest)
 	.then(pg.chainQueryPromise("DROP TABLE " + sourceContract.tableName))

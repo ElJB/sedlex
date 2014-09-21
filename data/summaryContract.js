@@ -44,13 +44,38 @@ contract.source = new Contract({
 		type: "TEXT NOT NULL"
 	},
 	{
-		name: "rcRef",
+		name: "rc_ref",
 		type: "TEXT NOT NULL"
 	},
 	{
 		name: "date",
 		type: "DATE NOT NULL"
+	},
+	{
+		name: "interventions_count",
+		type: "INTEGER NOT NULL"
+	},
+	{
+		name: "words_count",
+		type: "INTEGER NOT NULL"
+	},
+	{
+		name:"audience_n",
+		type:"INTEGER NOT NULL"
+	},
+	{
+		name:"lecture",
+		type:"TEXT NOT NULL"
+	},
+	{
+		name:"house",
+		type:"TEXT NOT NULL"
+	},
+	{
+		name:"commission",
+		type:"BOOLEAN NOT NULL"
 	}],
+	//TO DO add columns about intervention order in division and division in audience
 	constraint: {
 		unique: ["source_url"],
 		foreignKey: ""

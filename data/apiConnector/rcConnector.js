@@ -15,50 +15,57 @@ var crawler = new Crawler({
 	}),
 		folderUri = "http://www.lafabriquedelaloi.fr/api/";
 
-connector.loadTree = function(){
+connector.loadProjects = function(){
+	//TO DO refactor to get project list from "dossiers" folder
 	return Q.promise(function(resolve, reject, notify){
-		//TO DO refactor to get project list from "dossiers" folder
-		//TO DO add a resolve with the full list built
 		crawler.queue([{
 			"uri": folderUri,
 			"callback": function(err, result, $) {
 				if(err){
-					console.log("RC API crawler error: " + err);
-					callback(err);
+					reject(err);
 				} else {
-					var tree = $("table a").map(function(i, a){
+					var projects = $("table a").map(function(i, a){
 						return a.innerHTML;
 					}).filter(function(i, a){
 						return lawProjectRegex.exec(a);
-					})
+					}).toArray();
 
-					console.log(tree.length + " law projects");
+					console.log(projects.length + " law projects");
 
-					tree.each(buildInterventionUrl);
+					resolve(projects);
 				}
 			}
 		}]);
+	})
+}
 
-		var buildInterventionUrl = function(i, a){
-			var debateUrl = url.resolve(folderUri, path.join(a, 'viz', 'interventions.json'));
-
-			crawler.queue([{
-				"uri": debateUrl,
-				"jQuery":false,
-				"callback": getInterventionJson
-			}]);
-		}
+connector.loadIntervention = function(project){
+	return Q.promise(function(resolve, reject, notify){
+		var debateUrl = url.resolve(folderUri, path.join(project, 'viz', 'interventions.json'));
 
 		var getInterventionJson = function(err, result) {
 			if(err){
 				reject(err);
 			} else {
 				debug("Grabbed " + result.body.length + " bytes for " + extractLawFromUrl.exec(result.uri)[1]);
-				notify([extractLawFromUrl.exec(result.uri)[1],
+				resolve([extractLawFromUrl.exec(result.uri)[1],
 					new Debates(result.body)]);
 			}
 		}
+
+		crawler.queue([{
+			"uri": debateUrl,
+			"jQuery":false,
+			"callback": getInterventionJson
+		}]);
 	});
+}
+var Orator = function(args){
+	this.name = args[0];
+	for( key in args[1] ){
+		//inherited properties are: link, nb_mots, nb_intervs
+		this[key] = args[1][key];
+	}
 }
 
 var Group = function(groupSource){
@@ -69,7 +76,10 @@ var Group = function(groupSource){
 		var key = Object.keys(self.orators).sort(function(a, b){
 			return (a.nb_mots - b.nb_mots) * -1;
 		})[number];
-		return self.orators[key].link;
+		if( !(self.orators[key] instanceof Orator) ){
+			self.orators[key] = new Orator([key, self.orators[key]]);
+		}
+		return self.orators[key];
 	}
 }
 

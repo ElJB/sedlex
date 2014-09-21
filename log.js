@@ -1,3 +1,5 @@
 module.exports = function(err){
-	console.log(err.stack);
+	if( err instanceof Error){
+		console.log(err.stack);
+	}
 }

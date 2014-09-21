@@ -94,7 +94,8 @@ pgHelper.quotify = function(s){
 }
 
 pgHelper.dollarize = function(s){
-  return "$$" + s + "$$";
+  //TO DO: add random tag
+  return "$bla$" + s + "$bla$";
 }
 
 module.exports = pgHelper;
