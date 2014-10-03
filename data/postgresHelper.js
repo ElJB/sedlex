@@ -1,7 +1,8 @@
 var pg = require('pg'),
+    Cursor = require('pg-cursor'),
     dbConnect = require('../res/settings.js').db,
     summaryContract = require('./summaryContract').summary,
-    sourceContract = require('./summaryContract').source,
+    speechContract = require('./summaryContract').speech,
     Q = require('q')
     debug = require('../debug.js');
 
@@ -25,20 +26,6 @@ pg.connect(dbConnect, function(err, client, done){
     pgHelper.close = done;
   }
 });
-
-pgHelper.sqlCreateSummarizeTableString = function(tableName){
-  var resultString = "CREATE TABLE " + tableName + " (" +
-  summaryContract.columns.colId + " SERIAL, " +
-  summaryContract.columns.colSource + " TEXT NOT NULL, " +
-  summaryContract.columns.colModel + " TEXT, " +
-  summaryContract.columns.colModelParam + " TEXT, " +
-  summaryContract.columns.colSummary + " TEXT NOT NULL," +
-  " UNIQUE (" + summaryContract.columns.colSource + ", " + summaryContract.columns.colModel + ", " +
-  summaryContract.columns.colModelParam + "));";
-  debug(resultString);
-  return resultString;
-//TO DO: add foreign key
-}
 
 pgHelper.queryPromise = function(queryString){
   return Q.promise(function(resolve, reject, notify){

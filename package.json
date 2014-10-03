@@ -4,7 +4,8 @@
   "author": "Guillaume Boniface <guillaume.boniface@gmail.com>",
   "dependencies": {
     "pg": "*",
-    "simpletsets": "*"
+    "simpletsets": "*",
+    "q": "*"
   },
   "scripts": {
     "test": "DEBUG=true node test/script.js"

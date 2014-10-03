@@ -1,8 +1,8 @@
-var Q = require('Q');
+var url = require("url");
 
-var defer = Q.defer();
-
-defer.promise.progress(console.log);
-
-defer.notify("bla");
-defer.notify("bla");
+var u = url.format({
+	query: {
+		bla: "mop"
+	}
+});
+console.log(u);

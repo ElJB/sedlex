@@ -1,4 +1,5 @@
-var contract = {};
+var debug = require('../debug.js'),
+	contract = {};
 
 var Contract = function(source){
 	for( key in source ){
@@ -8,7 +9,7 @@ var Contract = function(source){
 
 Contract.prototype.getColumns = function(){
 	return this.columns.filter(function(e){
-		return e.type != "SERIAL";
+		return e.type.match(/SERIAL/) == null;
 	}).map(function(e){
 		return e.name;
 	});
@@ -24,23 +25,37 @@ Contract.prototype.createDbString = function(){
 		for( i in this.constraint.unique ){
 			result += this.constraint.unique[i] + ", ";
 		}
+		result = result.substring(0, result.length - 2) + "), ";
 	}
-	result = result.substring(0, result.length - 2) + "));";
+	if( "constraint" in this && "foreignKey" in this.constraint ){
+		result += "FOREIGN KEY (";
+		for( i in this.constraint.foreignKey.key ){
+			result += this.constraint.foreignKey.key[i] + ", ";
+		}
+		result = result.substring(0, result.length - 2) + ") REFERENCES ";
+		result += this.constraint.foreignKey.referenceTable + "(";
+		for( i in this.constraint.foreignKey.referenceKeys ){
+			result += this.constraint.foreignKey.referenceKeys[i] + ", ";
+		}
+		result = result.substring(0, result.length - 2) + "), ";
+	}
+	result = result.substring(0, result.length - 2) + ");";
+	debug(result);
 	return result;
 }
 
-contract.source = new Contract({
-	tableName: "source",
+contract.speech = new Contract({
+	tableName: "speech",
 	columns: [{
 		name: "_id",
-		type: "SERIAL"
+		type: "SERIAL PRIMARY KEY"
 	},
 	{
-		name: "source_url",
+		name: "url",
 		type: "TEXT NOT NULL"
 	},
 	{
-		name: "source_text",
+		name: "text",
 		type: "TEXT NOT NULL"
 	},
 	{
@@ -77,31 +92,39 @@ contract.source = new Contract({
 	}],
 	//TO DO add columns about intervention order in division and division in audience
 	constraint: {
-		unique: ["source_url"],
-		foreignKey: ""
-		//TO DO: add foreign key
+		unique: ["url"]
 	}
 });
 
-
-//TO DO update summary contract with types
 contract.summary = new Contract({
 	tableName: "summarize",
 	columns: [{
 		name: "_id",
+		type: "SERIAL PRIMARY KEY"
 	},
 	{
-		name: "source_id"
+		name: "speech_id",
+		type: "INTEGER NOT NULL"
 	},
 	{
-		name: "model"
+		name: "model",
+		type: "TEXT NOT NULL"
 	},
 	{
-		name: "model_param"
+		name: "model_param",
+		type: "TEXT NOT NULL"
 	},
 	{
-		name: "summary"
-	}]
+		name: "summary",
+		type: "TEXT NOT NULL"
+	}],
+	constraint: {
+		foreignKey: {
+			key: ["speech_id"],
+			referenceTable: "speech",
+			referenceKeys: ["_id"]
+		}
+	}
 });
 
 module.exports = contract;

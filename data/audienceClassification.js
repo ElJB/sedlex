@@ -1,3 +1,8 @@
+/*
+Understand Fabrique de la loi Audience classification
+by loading all descriptors in a set
+*/
+
 var Q = require('Q'),
 	rcConnector = require('./apiConnector/rcConnector.js'),
 	debug = require('../debug.js'),
@@ -7,7 +12,7 @@ var Q = require('Q'),
 		"maxConnections": 10
 	}),
 	pg = require('./postgresHelper.js'),
-	sourceContract = require('./summaryContract').source
+	speechContract = require('./summaryContract').speech
 	Set = require('simplesets').Set;
 
 var audienceSet = new Set(),

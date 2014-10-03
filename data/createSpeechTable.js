@@ -7,7 +7,7 @@ var Q = require('Q'),
 		"maxConnections": 10
 	}),
 	pg = require('./postgresHelper.js'),
-	sourceContract = require('./summaryContract').source;
+	speechContract = require('./summaryContract').speech;
 
 var extractDivId = /#.+/,
 	fetchedUrls;
@@ -16,11 +16,11 @@ var checkExist = function(result){
 	return Q.promise(function(resolve, reject){
 		var existingSourceTable = false;
 		result.rows.forEach(function(row){
-			existingSourceTable = row.table_name == sourceContract.tableName;
+			existingSourceTable = row.table_name == speechContract.tableName;
 		});
 
 		if( !existingSourceTable ){
-			pg.queryPromise(sourceContract.createDbString())
+			pg.queryPromise(speechContract.createDbString())
 				.then(function(){
 					resolve();
 				})
@@ -77,21 +77,26 @@ var writeToDb = function(args){
 		orator = args[5];
 	debug(result.uri);
 	var divId = extractDivId.exec(result.uri)[0];
-	//TO DO: improve extract to get full intervention if split by dialog
 	var re = new RegExp(orator.name);
-	var text = $(".perso a").filter(function(i, e){ return re.exec(e.innerHTML) })
-		.parent().parent().parent().find("texte_intervention").toArray().reduce(function(a, b){
-			return a + b.innerText;
-		}, "");
-	text = pg.dollarize( text );
+
+	var extractFullText = function($){
+		var text = $(".perso a").filter(function(i, e){ return re.exec(e.innerHTML) })
+			.parent().parent().parent().find("texte_intervention").toArray().reduce(function(a, b){
+				return a + b.innerText;
+			}, "");
+
+		return text;
+	}
+
+	var text = pg.dollarize(extractFullText($));
 	var date = audience.getDivision(0).date;
 	var procedure = audience.name.split("_");
 
 
-	var sqlInsertString = pg.buildSQLInsertString(sourceContract.tableName, sourceContract.getColumns(),
+	var sqlInsertString = pg.buildSQLInsertString(speechContract.tableName, speechContract.getColumns(),
 		[pg.dollarize(result.uri), text, pg.quotify(lawId), pg.quotify(date),
 			pg.quotify(orator.nb_intervs), pg.quotify(orator.nb_mots), Number(procedure[0]),
-			pg.quotify(procedure[1]), pg.quotify(procedure[2]), pq.quotify(procedure[3] == "commission")]);
+			pg.quotify(procedure[1]), pg.quotify(procedure[2]), pg.quotify(procedure[3] == "commission")]);
 
 	pg.queryPromise(sqlInsertString)
 		.then(debug)
@@ -111,7 +116,7 @@ var loadAndWriteInterventions = function(projects){
 pg.getTables()
 	.then(checkExist)
 	.then(function(){
-		return pg.queryPromise("SELECT source_url FROM source")
+		return pg.queryPromise("SELECT url FROM speech")
 	})
 	.then(saveFetchedUrls)
 	.then(rcConnector.loadProjects)

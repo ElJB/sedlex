@@ -1,15 +1,34 @@
 var pg = require('pg'),
 	dbConnect = require('../res/settings.js').db,
 	pg = require('../data/postgresHelper.js'),
-	sourceContract = require('../data/summaryContract').source,
+	speechContract = require('../data/summaryContract').speech,
+	summaryContract = require('../data/summaryContract').summary,
 	assert = require('assert');
 	Q = require('q');
 
-sourceContract.tableName = "test_source";
+speechContract.tableName = "test_speech";
+summaryContract.tableName = "test_summary";
+summaryContract.constraint.foreignKey.referenceTable = speechContract.tableName;
 
-pg.queryPromise(sourceContract.createDbString())
-	.then(pg.chainQueryPromise(pg.buildSQLInsertString(sourceContract.tableName,
-		sourceContract.getColumns(),
+var readTest = function(result){
+	assert(result.rowCount);
+	return Q.promise(function(resolve, reject, notify){
+		resolve();
+	});
+}
+
+var insertTestSummary = function(result){
+	return pg.queryPromise(pg.buildSQLInsertString(summaryContract.tableName,
+		summaryContract.getColumns(),
+		[result.rows[0]._id,
+			pg.quotify("test_model"),
+			pg.quotify("test_params"),
+			pg.dollarize("this != summary")]))
+}
+
+pg.queryPromise(speechContract.createDbString())
+	.then(pg.chainQueryPromise(pg.buildSQLInsertString(speechContract.tableName,
+		speechContract.getColumns(),
 		["'This is not a summary'",
 			"'http://www.notasummary.com'",
 			"'llpp'",
@@ -20,9 +39,15 @@ pg.queryPromise(sourceContract.createDbString())
 			"'1erelecture'",
 			"'assemblee'",
 			"'true'"])))
-	.then(pg.chainQueryPromise("SELECT * FROM " + sourceContract.tableName))
+	.then(pg.chainQueryPromise("SELECT * FROM " + speechContract.tableName))
 	.then(readTest)
-	.then(pg.chainQueryPromise("DROP TABLE " + sourceContract.tableName))
+	.then(pg.chainQueryPromise(summaryContract.createDbString()))
+	.then(pg.chainQueryPromise("SELECT * FROM " + speechContract.tableName))
+	.then(insertTestSummary)
+	.then(pg.chainQueryPromise("SELECT * FROM " + summaryContract.tableName))
+	.then(readTest)
+	.then(pg.chainQueryPromise("DROP TABLE " + summaryContract.tableName))
+	.then(pg.chainQueryPromise("DROP TABLE " + speechContract.tableName))
 	.then(function(result){
 		console.log("testDb: OK");
 	})
@@ -30,9 +55,5 @@ pg.queryPromise(sourceContract.createDbString())
 		console.log(err.stack);
 	});
 
-var readTest = function(result){
-	assert(result.rowCount);
-	return Q.promise(function(resolve, reject, notify){
-		resolve(client);
-	});
-}
+//TO DO: add tests for summary table·
+
