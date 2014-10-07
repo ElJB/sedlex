@@ -97,7 +97,7 @@ contract.speech = new Contract({
 });
 
 contract.summary = new Contract({
-	tableName: "summarize",
+	tableName: "summary",
 	columns: [{
 		name: "_id",
 		type: "SERIAL PRIMARY KEY"
@@ -123,7 +123,8 @@ contract.summary = new Contract({
 			key: ["speech_id"],
 			referenceTable: "speech",
 			referenceKeys: ["_id"]
-		}
+		},
+		unique: ["speech_id", "model", "model_param"]
 	}
 });
 

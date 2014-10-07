@@ -1,22 +1,51 @@
 var SummaryTool = require('node-summary'),
 	Q = require('q'),
-	pg = require('../data/postgresHelper.js')
-	log = require('../log.js');
+	pg = require('../data/postgresHelper.js'),
+	log = require('../log.js'),
+	debug = require('../debug.js'),
+	summaryContract = require('../data/summaryContract').summary;
 
-var textPromise = pg.queryPromise("SELECT source_text FROM source WHERE rc_ref = 'ppl13-007';");
+var params = {
+	sentenceCount: 6
+}
 
-textPromise.then(function(result){
-	var content = result.rows[0].source_text,
-		title = "";
-
-	SummaryTool.getSortedSentences(content, 10, function(err, summary) {
-	    if(err) console.log("Something went wrong man!");
-
-	    console.log(summary);
-
-	    console.log("Original Length " + (title.length + content.length));
-	    console.log("Summary Length " + summary.length);
-	    console.log("Summary Ratio: " + (100 - (100 * (summary.length / (title.length + content.length)))));
+var getSummarizedSpeech = function(speeches){
+	return Q.promise(function(resolve){
+		summarizedSpeeches = speeches.rows.map(function(speech){ return speech["speech_id"] }); 
+		resolve(summarizedSpeeches);
 	});
-}).catch(log);
+}
+
+var writeSummary = function(row){
+	return Q.promise(function(resolve, reject, notify){
+		SummaryTool.getSortedSentences(row.text, params.sentenceCount, function(err, summary){
+			if(err){ return log(err)};
+			pg.queryPromise(pg.buildSQLInsertString(summaryContract.tableName,
+				summaryContract.getColumns(),
+				[row._id,
+					pg.quotify("node-summary"),
+					pg.dollarize(JSON.stringify(params)),
+					pg.dollarize(summary)]))
+				.then(function(result){
+					debug(result);
+				})
+				.catch(log);
+		});
+	});
+}
+
+pg.queryPromise("SELECT speech_id FROM summary;")
+	.then(getSummarizedSpeech)
+	.then(function(summarizedSpeeches){
+		var speechCursor = new pg.Cursor("SELECT * FROM speech WHERE _id NOT IN (" + summarizedSpeeches.toString() + ");");
+		speechCursor.whileNext(5, function(rows){
+				rows.forEach(writeSummary);
+			})
+			.fin(function(){
+				speechCursor.close();
+			}).catch(log);
+		});
+
+
+
 

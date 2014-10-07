@@ -12,28 +12,9 @@ var Q = require('Q'),
 var extractDivId = /#.+/,
 	fetchedUrls;
 
-var checkExist = function(result){
-	return Q.promise(function(resolve, reject){
-		var existingSourceTable = false;
-		result.rows.forEach(function(row){
-			existingSourceTable = row.table_name == speechContract.tableName;
-		});
-
-		if( !existingSourceTable ){
-			pg.queryPromise(speechContract.createDbString())
-				.then(function(){
-					resolve();
-				})
-				.catch(reject);
-		} else {
-			resolve();
-		}
-	});
-}
-
 var saveFetchedUrls = function(urls){
 	return Q.promise(function(resolve){
-		fetchedUrls = urls.rows.map(function(url){ return url["source_url"] }); 
+		fetchedUrls = urls.rows.map(function(url){ return url["url"] }); 
 		resolve();
 	});
 }
@@ -77,15 +58,11 @@ var writeToDb = function(args){
 		orator = args[5];
 	debug(result.uri);
 	var divId = extractDivId.exec(result.uri)[0];
-	var re = new RegExp(orator.name);
+	var re = new RegExp(orator.name, "i");
 
 	var extractFullText = function($){
-		var text = $(".perso a").filter(function(i, e){ return re.exec(e.innerHTML) })
-			.parent().parent().parent().find("texte_intervention").toArray().reduce(function(a, b){
-				return a + b.innerText;
-			}, "");
-
-		return text;
+		return $(".perso a").filter(function(i, e){ return re.exec(e.innerHTML) })
+			.parent().parent().parent().find(".texte_intervention").text();
 	}
 
 	var text = pg.dollarize(extractFullText($));
@@ -113,11 +90,7 @@ var loadAndWriteInterventions = function(projects){
 	});
 }
 
-pg.getTables()
-	.then(checkExist)
-	.then(function(){
-		return pg.queryPromise("SELECT url FROM speech")
-	})
+pg.queryPromise("SELECT url FROM speech")
 	.then(saveFetchedUrls)
 	.then(rcConnector.loadProjects)
 	.then(loadAndWriteInterventions)

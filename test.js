@@ -1,8 +1,7 @@
-var url = require("url");
+var pg = require('pg');
 
-var u = url.format({
-	query: {
-		bla: "mop"
-	}
-});
-console.log(u);
+pg.connect(function(){})
+
+pg.connect(function(){})
+
+console.log(pg.pools.getOrCreate().getPoolSize());

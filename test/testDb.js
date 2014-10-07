@@ -3,7 +3,9 @@ var pg = require('pg'),
 	pg = require('../data/postgresHelper.js'),
 	speechContract = require('../data/summaryContract').speech,
 	summaryContract = require('../data/summaryContract').summary,
-	assert = require('assert');
+	assert = require('assert'),
+	log = require('../log.js'),
+	debug = require('../debug.js'),
 	Q = require('q');
 
 speechContract.tableName = "test_speech";
@@ -26,6 +28,19 @@ var insertTestSummary = function(result){
 			pg.dollarize("this != summary")]))
 }
 
+var testCursor = function(){
+	return Q.promise(function(resolve, reject, notify){
+		var speechCursor = new pg.Cursor("SELECT * FROM " + speechContract.tableName);
+		speechCursor.next()
+			.then(function(rows){
+				assert(rows.length > 0);
+				speechCursor.close();
+				resolve();
+			})
+			.catch(reject);
+	});
+}
+
 pg.queryPromise(speechContract.createDbString())
 	.then(pg.chainQueryPromise(pg.buildSQLInsertString(speechContract.tableName,
 		speechContract.getColumns(),
@@ -46,14 +61,19 @@ pg.queryPromise(speechContract.createDbString())
 	.then(insertTestSummary)
 	.then(pg.chainQueryPromise("SELECT * FROM " + summaryContract.tableName))
 	.then(readTest)
-	.then(pg.chainQueryPromise("DROP TABLE " + summaryContract.tableName))
-	.then(pg.chainQueryPromise("DROP TABLE " + speechContract.tableName))
+	.then(testCursor)
 	.then(function(result){
-		console.log("testDb: OK");
+		return Q.promise(function(resolve, reject, notify){
+			console.log("testDb: OK");
+			resolve();
+		});
 	})
-	.catch(function(err){
-		console.log(err.stack);
-	});
+	.fin(function(){
+		pg.queryPromise("DROP TABLE " + summaryContract.tableName)
+			.then(pg.chainQueryPromise("DROP TABLE " + speechContract.tableName))
+			.catch(log)
+	})
+	.catch(log);
 
 //TO DO: add tests for summary table·
 
