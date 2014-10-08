@@ -1,9 +1,9 @@
 var Q = require('Q'),
 	debug = require('../debug.js'),
 	log = require('../log.js'),
-	pg = require('./postgresHelper.js'),
-	speechContract = require('./summaryContract').speech
-	summaryContract = require('./summaryContract').summary;
+	pg = require('../data/postgresHelper.js'),
+	speechContract = require('../data/summaryContract').speech
+	summaryContract = require('../data/summaryContract').summary;
 
 var LOG = __filename + ": ";
 

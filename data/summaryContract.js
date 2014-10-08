@@ -128,4 +128,42 @@ contract.summary = new Contract({
 	}
 });
 
+contract.VPsummary = new Contract({
+	tableName: "vie_publique_summary",
+	columns: [{
+		name: "_id",
+		type: "SERIAL PRIMARY KEY"
+	},
+	{
+		name: "law_title",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "summary",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "content",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "url",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "date",
+		type: "TIMESTAMP NOT NULL"
+	},{
+		name: "status",
+		type: "INTEGER NOT NULL"
+	},
+	{
+		name: "tags",
+		type: "TEXT NOT NULL"
+	}],
+	constraint: {
+		unique: ["law_title"]
+	}
+});
+
 module.exports = contract;

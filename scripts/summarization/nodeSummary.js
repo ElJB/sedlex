@@ -1,9 +1,9 @@
 var SummaryTool = require('node-summary'),
 	Q = require('q'),
-	pg = require('../data/postgresHelper.js'),
-	log = require('../log.js'),
-	debug = require('../debug.js'),
-	summaryContract = require('../data/summaryContract').summary;
+	pg = require('../../data/postgresHelper.js'),
+	log = require('../../log.js'),
+	debug = require('../../debug.js'),
+	summaryContract = require('../../data/summaryContract').summary;
 
 var params = {
 	sentenceCount: 6

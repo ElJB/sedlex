@@ -1,13 +1,13 @@
 var Q = require('Q'),
-	rcConnector = require('./apiConnector/rcConnector.js'),
+	rcConnector = require('../data/apiConnector/rcConnector.js'),
 	debug = require('../debug.js'),
 	log = require('../log.js'),
 	Crawler = require('crawler').Crawler,
 	crawler = new Crawler({
 		"maxConnections": 10
 	}),
-	pg = require('./postgresHelper.js'),
-	speechContract = require('./summaryContract').speech;
+	pg = require('../data/postgresHelper.js'),
+	speechContract = require('../data/summaryContract').speech;
 
 var extractDivId = /#.+/,
 	fetchedUrls;
