@@ -2,29 +2,28 @@ var Q = require('Q'),
 	debug = require('../debug.js'),
 	log = require('../log.js'),
 	pg = require('../data/postgresHelper.js'),
-	speechContract = require('../data/summaryContract').speech
-	summaryContract = require('../data/summaryContract').summary;
+	contract = require('../data/summaryContract');
 
 var LOG = __filename + ": ";
 
 var checkExist = function(result){
 	return Q.promise(function(resolve, reject, notify){
-		var existingSpeechTable = false,
-			existingSummaryTable = false;
+		var existing = {};
 		result.rows.forEach(function(row){
-			existingSpeechTable = existingSpeechTable ? true : row.table_name == speechContract.tableName;
-			existingSummaryTable = existingSummaryTable ? true : row.table_name == summaryContract.tableName;
+			for( i in contract ){
+				existing[i] = existing[i] ? true : row.table_name == contract[i].tableName;
+			}
 		});
 		var promises = [];
 
-		if( existingSpeechTable && existingSummaryTable ){
+		if( Object.keys(existing).map(function(key){ return existing[key]; }).reduce(function(a, b){ return a && b;}) ){
 			return resolve();
 		}
-		if( !existingSpeechTable ){
-			promises.push(pg.queryPromise(speechContract.createDbString()));
-		}
-		if( !existingSummaryTable ){
-			promises.push(pg.queryPromise(summaryContract.createDbString()));
+
+		for( table in existing ){
+			if( !existing[table] ){
+				promises.push(pg.queryPromise(contract[table].createDbString()));
+			}
 		}
 
 		Q.all(promises)

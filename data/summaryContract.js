@@ -39,8 +39,14 @@ Contract.prototype.createDbString = function(){
 		}
 		result = result.substring(0, result.length - 2) + "), ";
 	}
+	if( "constraint" in this && "primaryKey" in this.constraint ){
+		result += "PRIMARY KEY (";
+		for( i in this.constraint.primaryKey ){
+			result += this.constraint.primaryKey[i] + ", ";
+		}
+		result = result.substring(0, result.length - 2) + "), ";
+	}
 	result = result.substring(0, result.length - 2) + ");";
-	debug(result);
 	return result;
 }
 
@@ -128,11 +134,12 @@ contract.summary = new Contract({
 	}
 });
 
-contract.VPsummary = new Contract({
-	tableName: "vie_publique_summary",
-	columns: [{
+contract.law = new Contract({
+	tableName: "law",
+	columns: [
+	{
 		name: "_id",
-		type: "SERIAL PRIMARY KEY"
+		type: "SERIAL"
 	},
 	{
 		name: "law_title",
@@ -160,9 +167,17 @@ contract.VPsummary = new Contract({
 	{
 		name: "tags",
 		type: "TEXT NOT NULL"
+	},
+	{
+		name: "nd_folder_url",
+		type: "TEXT"
+	},
+	{
+		name: "nd_law_title",
+		type: "TEXT"
 	}],
 	constraint: {
-		unique: ["law_title"]
+		primaryKey: ["url"]
 	}
 });
 

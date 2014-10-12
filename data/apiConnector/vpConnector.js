@@ -62,11 +62,8 @@ var entryToObj = function(entry){
 
 	result.content = parseHTML(result.content);
 
-	keys = ["title", "updated"]
-	for( i in keys ){
-		result[keys[i]] = entry[keys[i]][0]
-	}
-	result.date = result.updated;
+	result.law_title = entry.title[0],
+	result.date = entry.updated[0],
 	result.url = entry.link[0].$.href;
 
 	result.tags = [];
@@ -74,9 +71,11 @@ var entryToObj = function(entry){
 		if( entry.category[i].$.term[0] == entry.category[i].$.term[0].toUpperCase() ){
 			result.tags.push(entry.category[i].$.term);
 		} else {
-			result.status = statusMap[entry.category[i].$.term];
-			if( !result.status ){ throw new Error("Unknown law project status: " + entry.category[i].$.term); }
+			if( !(result.status = statusMap[entry.category[i].$.term]) ){ throw new Error("Unknown law project status: " + entry.category[i].$.term); }
 		}
+	}
+	if( !result.status ){
+		result.status = 0;
 	}
 
 	return result;
@@ -90,7 +89,13 @@ connector.getSummaries = function(){
 				if( err ){ return reject(err); }
 				parseXml(result.body, function(err, result){
 					if( err ){ return reject(err); }
-					resolve(result.feed.entry.map(entryToObj));
+					try {
+						result = result.feed.entry.map(entryToObj);
+					} catch (e) {
+						reject(e);
+					}
+					resolve(result);
+					
 				});
 			}
 		}]);

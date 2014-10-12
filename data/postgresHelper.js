@@ -6,15 +6,22 @@ var pg = require('pg'),
     Q = require('q'),
     debug = require('../debug.js'),
     log = require('../log.js'),
-    Cursor = require('pg-cursor');
+    Cursor = require('pg-cursor'),
+    utils = require('../utils.js'),
+    assert = require('assert');
 
 pgHelper = {};
 
+/*
+Promise implementation of pg.query
+Include client pooling
+*/
 
 pgHelper.queryPromise = function(queryString){
   return Q.promise(function(resolve, reject, notify){
     pg.connect(dbConnect, function(err, client, done){
       if( err ){ return reject(err) }
+      debug(queryString.substring(0, 100));
       var q = client.query(queryString)
       q.on("error", function(err){
         reject(err);
@@ -30,6 +37,21 @@ pgHelper.queryPromise = function(queryString){
     });
   });
 }
+
+/*
+Utility function to chain query promise
+*/
+
+pgHelper.chainQueryPromise = function(queryBuilder){
+  return function(result){
+    var queryString = typeof(queryBuilder) == "string" ? queryBuilder : queryBuilder(result);
+    return pgHelper.queryPromise(queryString);
+  }
+}
+
+/*
+Promise implementation of Cursor
+*/
 
 pgHelper.Cursor = function(queryString){
 
@@ -96,14 +118,87 @@ pgHelper.Cursor.prototype.close = function(){
   this.cursor.close();
 }
 
-pgHelper.chainQueryPromise = function(queryBuilder){
-  return function(result){
-    var queryString = typeof(queryBuilder) == "string" ? queryBuilder : queryBuilder(result);
-    return pgHelper.queryPromise(queryString);
+/*
+Transaction utility functions
+*/
+
+pgHelper.startTransaction = function(queryString){
+  if( !queryString ){ queryString = "BEGIN" }
+
+  return Q.promise(function(resolve, reject, notify){
+    pg.connect(dbConnect, function(err, client, done){
+      if( err ){ return reject(err) }
+      var q = client.query(queryString)
+      q.on("error", function(err){
+        reject(err);
+        done(client);
+      });
+      q.on("row", function(row, result) {
+        result.addRow(row);
+      });
+      q.on("end", function(result){
+        debug(queryString.substring(0, 100));
+        resolve([result, client]);
+      });
+    });
+  });
+}
+
+var rollback = function(client) {
+  debug("ROLLBACK");
+  client.query("ROLLBACK", function() {
+    client.end();
+  });
+};
+
+pgHelper.tQueryPromise = function(queryString){
+  return function(args){
+    var result = args[0],
+        client = args[1];
+
+    return Q.promise(function(resolve, reject, notify){
+      debug(queryString);
+      
+      var q = client.query(queryString)
+      q.on("error", function(err){
+        reject(err);
+        rollback(client);
+      });
+      q.on("row", function(row, result) {
+        result.addRow(row);
+      });
+      q.on("end", function(result){
+        resolve([result, client]);
+      });
+    });
+
   }
 }
 
+pgHelper.closeTransaction = function(args){
+  var result = args[0],
+      client = args[1];
+
+  return Q.promise(function(resolve, reject, notify){
+    debug("COMMIT");
+    var q = client.query("COMMIT")
+    q.on("error", function(err){
+      reject(err);
+      rollback(client);
+    });
+    q.on("row", function(row, result) {
+      result.addRow(row);
+    });
+    q.on("end", function(result){
+      resolve(result);
+      client.end();
+    });
+  });
+}
+
+
 pgHelper.buildSQLInsertString = function(tableName, columns, data){
+  assert(columns);
   var result = "INSERT into " + tableName;
   if( columns ){
     result += " (";
@@ -116,7 +211,6 @@ pgHelper.buildSQLInsertString = function(tableName, columns, data){
   for( d in data ){
     result += data[d] + ", "
   }
-  debug(result.substring(0, result.length - 2) + ");");
   return result.substring(0, result.length - 2) + ");";
 }
 
@@ -130,8 +224,8 @@ pgHelper.quotify = function(s){
 }
 
 pgHelper.dollarize = function(s){
-  //TO DO: add random tag
-  return "$bla$" + s + "$bla$";
+  var tag = "$" + utils.randomString(5) + "$";
+  return tag + s + tag;
 }
 
 module.exports = pgHelper;
