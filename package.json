@@ -5,7 +5,8 @@
   "dependencies": {
     "pg": "*",
     "simpletsets": "*",
-    "q": "*"
+    "q": "*",
+    "xml2js": "*"
   },
   "scripts": {
     "test": "DEBUG=true node test/script.js"
