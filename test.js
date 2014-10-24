@@ -1,12 +1,4 @@
-var vpConnector = require('./data/apiConnector/vpConnector.js'),
-	log = require('./log.js'),
-	Set = require('simplesets').Set,
-	htmlparser = require("htmlparser2");
+var iconv = new require('iconv').Iconv('latin1', 'utf8'),
+	iconv2 = new require('iconv').Iconv('utf8', 'latin1');
 
-var set = new Set();
-
-vpConnector.getSummaries().then(function(entries){
-	parser.write(entries[0].content);
-	parser.end();
-	
-}).catch(log);
+console.log(iconv.convert("éài").toString());
