@@ -11,9 +11,12 @@ var Q = require('Q'),
 	crawler = new Crawler({
 		"maxConnections": 10
 	}),
-	pg = require('../data/postgresHelper.js'),
+	dbConnect = require('../res/settings.js').db,
+	pgHelper = require('pg-helper'),
 	speechContract = require('../data/summaryContract').speech
 	Set = require('simplesets').Set;
+
+var pg = new pgHelper(dbConnect);
 
 var audienceSet = new Set(),
 	promises = [];

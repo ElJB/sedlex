@@ -1,4 +1,12 @@
-var iconv = new require('iconv').Iconv('latin1', 'utf8'),
-	iconv2 = new require('iconv').Iconv('utf8', 'latin1');
+process.stdin.setEncoding('utf8');
 
-console.log(iconv.convert("éài").toString());
+process.stdin.on('readable', function() {
+  var chunk = process.stdin.read();
+  if (chunk !== null) {
+    process.stdout.write('data: ' + chunk);
+  }
+});
+
+process.stdin.on('end', function() {
+  process.stdout.write('end');
+});

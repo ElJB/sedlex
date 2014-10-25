@@ -4,12 +4,15 @@ Analyze speeches and builds opinions for each parliamentary group through approv
 Insert opinions in DB
 */
 
-var	pg = require('../data/postgresHelper.js'),
+var	dbConnect = require('../res/settings.js').db,
+	pgHelper = require('pg-helper'),
 	Q = require('q'),
 	contract = require('../data/summaryContract.js').law,
 	log = require('../log.js'),
 	Debates = require("rc-debates"),
 	approval = require('approval');
+
+var pg = new pgHelper(dbConnect);
 
 var buildOpinions = function(){
 	return Q.promise(function(resolve, reject, notify){

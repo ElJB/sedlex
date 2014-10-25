@@ -1,21 +1,24 @@
 var Q = require('Q'),
-	connector = require('../data/apiConnector/vpConnector.js'),
+	connector = require('vie-publique'),
 	debug = require('../debug.js'),
 	log = require('../log.js'),
 	Crawler = require('crawler').Crawler,
 	crawler = new Crawler({
 		"maxConnections": 10
 	}),
-	pg = require('../data/postgresHelper.js'),
+	dbConnect = require('../res/settings.js').db,
+	pgHelper = require('pg-helper'),
 	contract = require('../data/summaryContract').law,
 	util = require('util');
+
+var pg = new pgHelper(dbConnect);
 
 var temp_contract = {};
 for( key in contract ){
 	temp_contract[key] = contract[key];
 }
 temp_contract.tableName = contract.tableName + "_temp";
-columns = contract.getColumns();
+var columns = contract.getColumns();
 
 var insertTempSummaries = function(summaries){
 	return function(args){
@@ -30,6 +33,7 @@ var insertTempSummaries = function(summaries){
 
 					for( i in columns ){
 						data[columns[i]] = summary[columns[i]];
+						if( data[columns[i]] === undefined ){ data[columns[i]] = null; };
 						if( typeof(data[columns[i]]) == "string" ){ data[columns[i]] = pg.dollarize(data[columns[i]]); };
 						if( util.isArray(data[columns[i]]) ){ data[columns[i]] = pg.dollarize(JSON.stringify(data[columns[i]])); };
 					}

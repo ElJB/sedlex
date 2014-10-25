@@ -1,8 +1,11 @@
 var Q = require('Q'),
 	debug = require('../debug.js'),
 	log = require('../log.js'),
-	pg = require('../data/postgresHelper.js'),
+	dbConnect = require('../res/settings.js').db,
+	pgHelper = require('pg-helper'),
 	contract = require('../data/summaryContract');
+
+var pg = new pgHelper(dbConnect);
 
 var LOG = __filename + ": ";
 

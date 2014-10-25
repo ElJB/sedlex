@@ -169,16 +169,49 @@ contract.law = new Contract({
 		type: "TEXT NOT NULL"
 	},
 	{
+		name: "parliament_folder_url",
+		type: "TEXT"
+	},
+	{
 		name: "nd_folder_url",
 		type: "TEXT"
 	},
 	{
 		name: "nd_law_title",
 		type: "TEXT"
-	}],
+	}
+	],
 	constraint: {
 		primaryKey: ["url"]
 	}
 });
+
+contract.corpus = new Contract({
+	tableName: "corpus",
+	columns: [
+	{
+		name: "_id",
+		type: "SERIAL"
+	},
+	{
+		name: "sentence",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "lemma_sentence",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "relevant",
+		type: "BOOLEAN"
+	},
+	{
+		name: "sentiment",
+		type: "DECIMAL"
+	}],
+	constraint: {
+		unique: ["sentence"]
+	}
+})
 
 module.exports = contract;

@@ -6,7 +6,8 @@
     "pg": "*",
     "simpletsets": "*",
     "q": "*",
-    "xml2js": "*"
+    "xml2js": "*",
+    "vie-publique": "*"
   },
   "scripts": {
     "test": "DEBUG=true node test/script.js"

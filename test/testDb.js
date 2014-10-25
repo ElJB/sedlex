@@ -1,12 +1,13 @@
-var pg = require('pg'),
-	dbConnect = require('../res/settings.js').db,
-	pg = require('../data/postgresHelper.js'),
+var	dbConnect = require('../res/settings.js').db,
+	pgHelper = require('pg-helper'),
 	speechContract = require('../data/summaryContract').speech,
 	summaryContract = require('../data/summaryContract').summary,
 	assert = require('assert'),
 	log = require('../log.js'),
 	debug = require('../debug.js'),
 	Q = require('q');
+
+var pg = new pgHelper(dbConnect);
 
 speechContract.tableName = "test_speech";
 summaryContract.tableName = "test_summary";
