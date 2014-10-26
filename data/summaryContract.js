@@ -202,8 +202,8 @@ contract.corpus = new Contract({
 		type: "TEXT NOT NULL"
 	},
 	{
-		name: "relevant",
-		type: "BOOLEAN"
+		name: "relevance",
+		type: "DECIMAL"
 	},
 	{
 		name: "sentiment",

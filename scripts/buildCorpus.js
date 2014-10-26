@@ -18,6 +18,24 @@ var pg = new pgHelper({
 	host: "localhost"
 });
 
+var toDo = false;
+
+
+//allow to restart the script halfway
+var filterResults = function(sqlResult){
+	return Q.promise(function(resolve, reject, notify){
+
+		sqlResult.rows = sqlResult.rows.filter(function(result){
+			// TODO: make stop point an argument in the script 
+			if( result.nd_folder_url == "http://www.nosdeputes.fr/14/dossier/8764"){
+				toDo = true;
+			}
+			return toDo;
+		});
+		resolve(sqlResult);
+	});
+}
+
 var fetchDebates = function(sqlResult){
 	return Q.promise(function(resolve, reject, notify){
 
@@ -131,5 +149,6 @@ var insertCorpus = function(corpus){
 }
 
 pg.queryPromise("SELECT nd_law_title, nd_folder_url FROM " + contracts.law.tableName + " WHERE nd_folder_url IS NOT NULL")
+	.then(filterResults)
 	.then(fetchDebates)
 	.catch(log);
