@@ -25,13 +25,13 @@ var toDo = false;
 var filterResults = function(sqlResult){
 	return Q.promise(function(resolve, reject, notify){
 
-		sqlResult.rows = sqlResult.rows.filter(function(result){
-			// TODO: make stop point an argument in the script 
-			if( result.nd_folder_url == "http://www.nosdeputes.fr/14/dossier/8764"){
-				toDo = true;
-			}
-			return toDo;
-		});
+		// sqlResult.rows = sqlResult.rows.filter(function(result){
+		// 	// TODO: make stop point an argument in the script 
+		// 	if( result.nd_folder_url == "http://www.nosdeputes.fr/14/dossier/8764"){
+		// 		toDo = true;
+		// 	}
+		// 	return toDo;
+		// });
 		resolve(sqlResult);
 	});
 }
@@ -102,6 +102,8 @@ var createLemmSentences = function(debates){
 				console.log("Switch to orator: " + orator);
 
 				var text = debates.getInterventionByOrator(orator);
+
+				//TO DO: insert full text into DB speech
 
 				approval(text)
 					.then(insertCorpus)

@@ -57,80 +57,32 @@ contract.speech = new Contract({
 		type: "SERIAL PRIMARY KEY"
 	},
 	{
-		name: "url",
+		name: "law_url",
 		type: "TEXT NOT NULL"
 	},
 	{
-		name: "text",
+		name: "speech",
 		type: "TEXT NOT NULL"
 	},
 	{
-		name: "rc_ref",
+		name: "orator",
 		type: "TEXT NOT NULL"
 	},
 	{
-		name: "date",
-		type: "DATE NOT NULL"
+		name: "plt_group",
+		type: "TEXT NOT NULL"
 	},
 	{
-		name: "interventions_count",
-		type: "INTEGER NOT NULL"
-	},
-	{
-		name: "words_count",
-		type: "INTEGER NOT NULL"
-	},
-	{
-		name:"audience_n",
-		type:"INTEGER NOT NULL"
-	},
-	{
-		name:"lecture",
+		name:"debate_section",
 		type:"TEXT NOT NULL"
-	},
-	{
-		name:"house",
-		type:"TEXT NOT NULL"
-	},
-	{
-		name:"commission",
-		type:"BOOLEAN NOT NULL"
-	}],
-	//TO DO add columns about intervention order in division and division in audience
-	constraint: {
-		unique: ["url"]
-	}
-});
-
-contract.summary = new Contract({
-	tableName: "summary",
-	columns: [{
-		name: "_id",
-		type: "SERIAL PRIMARY KEY"
-	},
-	{
-		name: "speech_id",
-		type: "INTEGER NOT NULL"
-	},
-	{
-		name: "model",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "model_param",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "summary",
-		type: "TEXT NOT NULL"
 	}],
 	constraint: {
 		foreignKey: {
-			key: ["speech_id"],
-			referenceTable: "speech",
-			referenceKeys: ["_id"]
+			key: ["law_url"],
+			referenceTable: "law",
+			referenceKeys: ["url"]
 		},
-		unique: ["speech_id", "model", "model_param"]
+		unique: ["law_url", "orator", "plt_group", "debate_section"]
 	}
 });
 
@@ -208,6 +160,10 @@ contract.corpus = new Contract({
 	{
 		name: "sentiment",
 		type: "DECIMAL"
+	},
+	{
+		name: "information",
+		type: "TEXT"
 	}],
 	constraint: {
 		unique: ["sentence"]
