@@ -75,6 +75,26 @@ contract.speech = new Contract({
 	{
 		name:"debate_section",
 		type:"TEXT NOT NULL"
+	},
+	{
+		name:"rated_sentences",
+		type:"INTEGER",
+	},
+	{
+		name:"positive",
+		type:"DECIMAL"
+	},
+	{
+		name:"negative",
+		type:"DECIMAL"
+	},
+	{
+		name:"useless",
+		type:"DECIMAL"
+	},
+	{
+		name:"rating",
+		type: "TEXT"
 	}],
 	constraint: {
 		foreignKey: {
