@@ -7,7 +7,8 @@
     "simpletsets": "*",
     "q": "*",
     "xml2js": "*",
-    "vie-publique": "*"
+    "vie-publique": "*",
+    "alpage-connector": "*"
   },
   "scripts": {
     "test": "DEBUG=true node test/script.js"
