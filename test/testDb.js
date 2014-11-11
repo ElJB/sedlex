@@ -42,7 +42,7 @@ var testCursor = function(){
 	});
 }
 
-pg.queryPromise(speechContract.createDbString())
+pg.queryPromise(speechContract.createTableString())
 	.then(pg.chainQueryPromise(pg.buildSQLInsertString(speechContract.tableName,
 		speechContract.getColumns(),
 		["'This is not a summary'",
@@ -57,7 +57,7 @@ pg.queryPromise(speechContract.createDbString())
 			"'true'"])))
 	.then(pg.chainQueryPromise("SELECT * FROM " + speechContract.tableName))
 	.then(readTest)
-	.then(pg.chainQueryPromise(summaryContract.createDbString()))
+	.then(pg.chainQueryPromise(summaryContract.createTableString()))
 	.then(pg.chainQueryPromise("SELECT * FROM " + speechContract.tableName))
 	.then(insertTestSummary)
 	.then(pg.chainQueryPromise("SELECT * FROM " + summaryContract.tableName))

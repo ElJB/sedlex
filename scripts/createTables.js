@@ -25,7 +25,7 @@ var checkExist = function(result){
 
 		for( table in existing ){
 			if( !existing[table] ){
-				promises.push(pg.queryPromise(contract[table].createDbString()));
+				promises.push(pg.queryPromise(contract[table].createTableString()));
 			}
 		}
 

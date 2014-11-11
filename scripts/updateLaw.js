@@ -104,7 +104,7 @@ Q.all(promises)
 		}
 		
 		pg.startTransaction()
-			.then(pg.tQueryPromise(temp_contract.createDbString()))
+			.then(pg.tQueryPromise(temp_contract.createTableString()))
 			.then(insertTempSummaries(summaries))
 			.then(pg.tQueryPromise("LOCK TABLE " + temp_contract.tableName + " IN EXCLUSIVE MODE"))
 			.then(updateExistingEntries())

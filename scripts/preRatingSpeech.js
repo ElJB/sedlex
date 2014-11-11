@@ -46,7 +46,7 @@ var preRateSpeech = function(speeches){
 		});
 }
 
-pg.queryPromise("SELECT _id, speech FROM speech WHERE rated_sentences IS NULL")
+pg.queryPromise("SELECT _id, speech FROM speech WHERE rating IS NOT NULL")
 	.then(preRateSpeech)
 	.catch(function(err){
 		console.log(err.stack);
