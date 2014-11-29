@@ -145,4 +145,33 @@ contract.corpus = new Contract({
 	}
 })
 
+contract.sentence = new Contract({
+	tableName: "sentence",
+	columns: [
+	{
+		name: "_id",
+		type: "SERIAL PRIMARY KEY"
+	},
+	{
+		name: "speech_id",
+		type: "INTEGER NOT NULL"
+	},
+	{
+		name: "sentence",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "lemma_sentence",
+		type: "TEXT NOT NULL"
+	}],
+	constraint: {
+		unique: ["sentence"],
+		foreignKey: {
+			key: ["speech_id"],
+			referenceTable: "speech",
+			referenceKeys: ["_id"]
+		}
+	}
+})
+
 module.exports = contract;

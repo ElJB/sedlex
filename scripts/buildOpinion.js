@@ -67,7 +67,7 @@ var loadDebates = function(results){
 				if( results.rows.length ){
 					loadDebates(results);
 				}
-			}).catch(log);	
+			}).catch(log);
 	});
 }
 
