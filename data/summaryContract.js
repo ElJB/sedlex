@@ -6,10 +6,10 @@ var debug = require('../debug.js'),
 contract.tables = {};
 var mysql = new mysqlHelper({
 	connectionLimit : 10,
-	host            : 'localhost',
-	user            : 'root',
-	password        : '',
-	database		: 'test'
+	host            : process.env.MYSQLHOST,
+	user            : process.env.MYSQLUSER,
+	password        : process.env.MYSQLPASSWORD,
+	database		: 'agora'
 });
 var Contract = mysql.Contract;
 
