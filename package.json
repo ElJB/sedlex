@@ -8,7 +8,8 @@
     "q": "*",
     "xml2js": "*",
     "vie-publique": "*",
-    "alpage-connector": "*"
+    "alpage-connector": "*",
+    "crawler": "*"
   },
   "scripts": {
     "test": "DEBUG=true node test/script.js"
