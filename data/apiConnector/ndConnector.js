@@ -5,8 +5,6 @@ Connector for www.nosdeputes.fr
 var Crawler = require("crawler").Crawler,
 	path = require('path'),
 	url = require('url'),
-	debug = require('../../debug.js'),
-	log = require('../../log.js'),
 	connector = {},
 	assert = require('assert'),
 	Q = require('Q');
