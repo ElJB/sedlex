@@ -1,5 +1,4 @@
-var debug = require('../debug.js'),
-	contract = {},
+var contract = {},
 	mysqlHelper = require('mysql-helper'),
 	Q = require('q');
 
