@@ -11,24 +11,6 @@ var ndConnector = require('../data/apiConnector/ndConnector.js'),
 
 var pg = new pgHelper(dbConnect);
 
-// var stopWords = ["loi", "programmation", "projet", "proposition", "pour"];
-// 
-// var fuzzyTitleMatch = function(title){
-// 	var tokens = title.split(/ |-/).filter(function(token){
-// 		token = token.toLowerCase();
-// 		return token.length > 3 && stopWords.indexOf(token) == -1;
-// 	});
-// 	if( tokens.length > 2 ){
-// 		tokens = tokens.filter(function(token){
-// 			return !token.match(flexedFormRe);
-// 		});
-// 	}
-// 	if( tokens.length == 0){
-// 		throw new Error("Invalid fuzzyTitleMatch");
-// 	}
-// 	return "%" + tokens.join("%") + "%"
-// }
-
 var fuzzyUrlMatch = function(url){
 	return "%" + url.match(/dossiers\/([^\.]+)\.asp/)[1] + "%";
 }

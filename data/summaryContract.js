@@ -1,67 +1,23 @@
 var debug = require('../debug.js'),
 	contract = {},
-	pgHelper = require('pg-helper');
+	mysqlHelper = require('mysql-helper'),
+	Q = require('q');
 
-var pg = new pgHelper();
-var Contract = pg.Contract;
-
-contract.speech = new Contract({
-	tableName: "speech",
-	columns: [{
-		name: "_id",
-		type: "SERIAL PRIMARY KEY"
-	},
-	{
-		name: "law_url",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "speech",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "orator",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "plt_group",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name:"debate_section",
-		type:"TEXT NOT NULL"
-	},
-	{
-		name:"rated_sentences",
-		type:"INTEGER",
-	},
-	{
-		name:"positive",
-		type:"DECIMAL"
-	},
-	{
-		name:"negative",
-		type:"DECIMAL"
-	},
-	{
-		name:"useless",
-		type:"DECIMAL"
-	},
-	{
-		name:"rating",
-		type: "TEXT"
-	}],
-	constraint: {
-		foreignKey: {
-			key: ["law_url"],
-			referenceTable: "law",
-			referenceKeys: ["url"]
-		},
-		unique: ["law_url", "orator", "plt_group", "debate_section"]
-	}
+contract.tables = {};
+var mysql = new mysqlHelper({
+	connectionLimit : 10,
+	host            : 'localhost',
+	user            : 'root',
+	password        : '',
+	database		: 'test'
 });
+var Contract = mysql.Contract;
 
-contract.law = new Contract({
+function getTables(){
+	return mysql.execSQL("SHOW TABLES");
+}
+
+contract.tables.law = new Contract({
 	tableName: "law",
 	columns: [
 	{
@@ -82,7 +38,7 @@ contract.law = new Contract({
 	},
 	{
 		name: "url",
-		type: "TEXT NOT NULL"
+		type: "VARCHAR(200) NOT NULL"
 	},
 	{
 		name: "date",
@@ -113,65 +69,53 @@ contract.law = new Contract({
 	}
 });
 
-contract.corpus = new Contract({
-	tableName: "corpus",
-	columns: [
-	{
-		name: "_id",
-		type: "SERIAL"
-	},
-	{
-		name: "sentence",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "lemma_sentence",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "relevance",
-		type: "DECIMAL"
-	},
-	{
-		name: "sentiment",
-		type: "DECIMAL"
-	},
-	{
-		name: "information",
-		type: "TEXT"
-	}],
-	constraint: {
-		unique: ["sentence"]
-	}
-})
+contract.insert = function insert(uri, columns, data){
+	return mysql.insert(getTableFromUri(uri), columns, data);
+}
 
-contract.sentence = new Contract({
-	tableName: "sentence",
-	columns: [
-	{
-		name: "_id",
-		type: "SERIAL PRIMARY KEY"
-	},
-	{
-		name: "speech_id",
-		type: "INTEGER NOT NULL"
-	},
-	{
-		name: "sentence",
-		type: "TEXT NOT NULL"
-	},
-	{
-		name: "lemma_sentence",
-		type: "TEXT NOT NULL"
-	}],
-	constraint: {
-		unique: ["sentence"],
-		foreignKey: {
-			key: ["speech_id"],
-			referenceTable: "speech",
-			referenceKeys: ["_id"]
+contract.upsert = function upsert(uri, columns, data){
+	return mysql.upsert(getTableFromUri(uri), columns, data);
+}
+
+contract.lawMaxDate = function lawMaxDate(){
+	return mysql.execSQL("SELECT max(date) FROM law");
+}
+
+contract.updateLawWithND = function updateLawWithND(project){
+	return mysql.update("law", ["nd_folder_url", "nd_law_title"], [project.url, project.title],
+			"(nd_folder_url IS NULL OR nd_law_title IS NULL) AND lower(parliament_folder_url) LIKE lower(?)", fuzzyUrlMatch(project.pltUrl));
+}
+
+function fuzzyUrlMatch(url){
+	return "%" + url.match(/dossiers\/([^\.]+)\.asp/)[1] + "%";
+}
+
+function getTableFromUri(uri){
+	return /\/(\w+)/.exec(uri)[1];
+}
+
+getTables()
+.then(function(result){
+	var tables = Object.keys(contract.tables),
+		existing = result[0].map(function(e){
+			for( key in e ){
+				return e[key];
+			}
+		});
+
+	var promises = []
+	for( i in tables ){
+		if( existing.indexOf(tables[i]) == -1 ){
+			promises.push(mysql.execSQL(contract.tables[tables[i]].createTableString()));
 		}
 	}
+
+	return Q.all(promises);
 })
+.catch(log);
+
+function log(e){
+	console.log(e.stack);
+}
 
 module.exports = contract;

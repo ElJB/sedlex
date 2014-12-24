@@ -1,116 +1,83 @@
-var Q = require('Q'),
+var contract = require('../data/summaryContract.js'),
 	connector = require('vie-publique'),
-	debug = require('../debug.js'),
-	log = require('../log.js'),
+	ndConnector = require('../data/apiConnector/ndConnector.js'),
+	Q = require('q'),
 	Crawler = require('crawler').Crawler,
 	crawler = new Crawler({
 		"maxConnections": 10
-	}),
-	dbConnect = require('../res/settings.js').db,
-	pgHelper = require('pg-helper'),
-	contract = require('../data/summaryContract').law,
-	util = require('util');
+	});
 
-var pg = new pgHelper(dbConnect);
+Q.all([connector.getSummaries(), contract.lawMaxDate()])
+.then(function(results){
+	var promises = [],
+		summaries = results[0],
+		maxDate = new Date(results[1][0][0]['max(date)']);
 
-var temp_contract = {};
-for( key in contract ){
-	temp_contract[key] = contract[key];
-}
-temp_contract.tableName = contract.tableName + "_temp";
-var columns = contract.getColumns();
+	summaries = summaries.filter(function filterSummary(summary){
+		return new Date(summary.date) >= maxDate;
+	});
 
-var insertTempSummaries = function(summaries){
-	return function(args){
-		return Q.promise(function(resolve, reject, notify){
+	summaries.forEach(function upsert(summary){
+		promises.push(contract.upsert("/law",
+						contract.tables.law.getColumns(),
+						[summary.law_title,
+						 summary.summary,
+						 summary.content,
+						 summary.url,
+						 summary.date,
+						 summary.status,
+						 JSON.stringify(summary.tags),
+						 summary.parliament_folder_url,
+						 null,
+						 null]))
+	});
 
-			var insertBatch = function(summaries){
+	return Q.all(promises);
+})
+.then(function(){
+	return ndConnector.getProjects();
+})
+.then(function addPltUrlToProject(projects){
+	var promises = [];
 
-				var insertPromises = [];
+	projects.forEach(function(project){
+		var deferred = Q.defer();
+		promises.push(deferred.promise);
 
-				summaries.splice(0,10).forEach(function(summary){
-					var data = [];
-
-					for( i in columns ){
-						data[columns[i]] = summary[columns[i]];
-						if( data[columns[i]] === undefined ){ data[columns[i]] = null; };
-						if( typeof(data[columns[i]]) == "string" ){ data[columns[i]] = pg.dollarize(data[columns[i]]); };
-						if( util.isArray(data[columns[i]]) ){ data[columns[i]] = pg.dollarize(JSON.stringify(data[columns[i]])); };
-					}
-
-					insertPromises.push(pg.tQueryPromise(pg.buildSQLInsertString(
-						temp_contract.tableName,
-						columns,
-						data))(args));
-				});
-
-				Q.all(insertPromises)
-					.then(function(){
-						debug("Remains to insert: " + summaries.length);
-						if( !summaries.length ){ return resolve(args); }
-						insertBatch(summaries);
-					}).catch(reject);			
+		crawler.queue([{
+			url: project.url,
+			callback: function(err, result, $){
+				if( err ){ return deferred.reject(err); }
+				try {
+					project.pltUrl = $('.source:contains("Dossier sur") a')[0].href;
+				} catch(e) {}
+				deferred.resolve(project);
 			}
+		}]);
+	});
 
-			insertBatch(summaries);
-		});		
-	}
+	return Q.all(promises);
+})
+.then(function(projects){
+	var promises = [];
+
+	projects = projects.filter(function(project){
+		return project.pltUrl;
+	});
+
+	projects.forEach(function updateDb(project){
+		promises.push(contract.updateLawWithND(project));
+	});
+
+	return Q.all(promises);
+})
+.catch(log);
+
+var fuzzyUrlMatch = function(url){
+	return "%" + url.match(/dossiers\/([^\.]+)\.asp/)[1] + "%";
 }
 
-var updateExistingEntries = function(){
-	var setSyntax = "";
-	for( i in columns ){
-		setSyntax += columns[i] + " = " + temp_contract.tableName + "." + columns[i] + ", ";
-	}
-	setSyntax = setSyntax.substring(0, setSyntax.length - 2);
-
-	var queryString = "UPDATE " + contract.tableName +
-		" SET " + setSyntax +
-		" FROM " + temp_contract.tableName +
-		" WHERE " + contract.tableName + ".url = " + temp_contract.tableName + ".url";
-
-	return pg.tQueryPromise(queryString);
+function log(e){
+	console.log(e.stack);
 }
 
-var insertNonExistingEntries = function(){
-	var selectSyntax = columns.map(function(column){ return temp_contract.tableName + "." + column; }).toString();
-
-	var queryString = "INSERT INTO " + contract.tableName + " (" + contract.getColumns().toString() + ") " +
-		" SELECT " + selectSyntax +
-		" FROM " + temp_contract.tableName +
-		" LEFT OUTER JOIN " + contract.tableName + " ON (" + contract.tableName + ".url = " +
-			temp_contract.tableName + ".url)" +
-		" WHERE " + contract.tableName + ".url IS NULL";
-
-	return pg.tQueryPromise(queryString);
-}
-
-//TODO: refactor UPSERT procedure inside pgHelper
-
-var promises = [];
-
-promises.push(pg.queryPromise("SELECT max(date) FROM " + contract.tableName));
-promises.push(connector.getSummaries());
-
-Q.all(promises)
-	.then(function(results){
-		var maxDate = results[0],
-			summaries = results[1];
-
-		if( maxDate = maxDate.rows[0].max ){
-			summaries = summaries.filter(function(summary){
-				return new Date(summary.date) >= new Date(maxDate);
-			});
-		}
-		
-		pg.startTransaction()
-			.then(pg.tQueryPromise(temp_contract.createTableString()))
-			.then(insertTempSummaries(summaries))
-			.then(pg.tQueryPromise("LOCK TABLE " + temp_contract.tableName + " IN EXCLUSIVE MODE"))
-			.then(updateExistingEntries())
-			.then(insertNonExistingEntries())
-			.then(pg.tQueryPromise("DROP TABLE " + temp_contract.tableName))
-			.then(pg.closeTransaction)
-			.catch(log);
-
-	}).catch(log);
