@@ -1,12 +1,13 @@
 var contract = require('../data/summaryContract.js'),
 	connector = require('vie-publique'),
-	ndConnector = require('../data/apiConnector/ndConnector.js'),
+	ndConnector = require('nd-connector'),
 	Q = require('q'),
 	Crawler = require('crawler'),
 	crawler = new Crawler({
 		"maxConnections": 10
 	});
 
+var projectCount = 0;
 Q.all([connector.getSummaries(), contract.lawMaxDate()])
 .then(function(results){
 	var promises = [],
@@ -31,6 +32,7 @@ Q.all([connector.getSummaries(), contract.lawMaxDate()])
 						 null,
 						 null]))
 	});
+	console.log("Vie publique loaded");
 
 	return Q.all(promises);
 })
@@ -38,42 +40,54 @@ Q.all([connector.getSummaries(), contract.lawMaxDate()])
 	return ndConnector.getProjects();
 })
 .then(function addPltUrlToProject(projects){
-	var promises = [];
+	var deferred = Q.defer(),
+		iCount = 0;
+
+	projectCount = projects.length;
 
 	projects.forEach(function(project){
-		var deferred = Q.defer();
-		promises.push(deferred.promise);
 
 		crawler.queue([{
 			url: project.url,
+			retries: 5,
 			callback: function(err, result, $){
-				if( err ){ return deferred.reject(err); }
+				if( err ){ return deferred.notify(err); }
 				try {
 					project.pltUrl = $('.source:contains("Dossier sur") a')[0].attribs.href;
 				} catch(e) {}
-				deferred.resolve(project);
+				deferred.notify(project);
+				iCount += 1;
+				if( iCount == projectCount ){
+					deferred.resolve();
+				}
+
 			}
 		}]);
 	});
 
-	return Q.all(promises);
+	console.log("Nos deputes loaded");
+
+	return deferred.promise;
 })
-.then(function(projects){
-	var promises = [];
+.progress(function(project){
+	if( project instanceof Error){
+		return log(project);
+	}
 
-	projects = projects.filter(function(project){
-		return project.pltUrl;
-	});
-
-	projects.forEach(function updateDb(project){
-		promises.push(contract.updateLawWithND(project));
-	});
-
-	return Q.all(promises);
+	if( project.pltUrl ){
+		contract.updateLawWithND(project)
+		.catch(function(e){
+			console.log("DB error");
+			log(e);
+		});
+	}
+})
+.then(function(){
+	console.log("NDFolders loaded");
 })
 .catch(log);
 
-var fuzzyUrlMatch = function(url){
+function fuzzyUrlMatch(url){
 	return "%" + url.match(/dossiers\/([^\.]+)\.asp/)[1] + "%";
 }
 

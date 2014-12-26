@@ -8,7 +8,8 @@ var mysql = new mysqlHelper({
 	host            : process.env.MYSQLHOST,
 	user            : process.env.MYSQLUSER,
 	password        : process.env.MYSQLPASSWORD,
-	database		: 'agora'
+	database		: 'agora',
+	acquireTimeout	: 20000
 });
 var Contract = mysql.Contract;
 
