@@ -2,7 +2,7 @@
 Connector for www.nosdeputes.fr
 */
 
-var Crawler = require("crawler").Crawler,
+var Crawler = require("crawler"),
 	path = require('path'),
 	url = require('url'),
 	connector = {},
@@ -26,7 +26,7 @@ connector.getProjects = function(){
 				var projects = $('h2:contains(derniers)').next().find("a").toArray().map(
 					function(e){
 						return {
-							url: url.resolve(ndUrl, e.href),
+							url: url.resolve(ndUrl, e.attribs.href),
 							title: e.innerHTML
 						}
 					});

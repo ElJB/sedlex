@@ -2,7 +2,7 @@ var contract = require('../data/summaryContract.js'),
 	connector = require('vie-publique'),
 	ndConnector = require('../data/apiConnector/ndConnector.js'),
 	Q = require('q'),
-	Crawler = require('crawler').Crawler,
+	Crawler = require('crawler'),
 	crawler = new Crawler({
 		"maxConnections": 10
 	});
@@ -49,7 +49,7 @@ Q.all([connector.getSummaries(), contract.lawMaxDate()])
 			callback: function(err, result, $){
 				if( err ){ return deferred.reject(err); }
 				try {
-					project.pltUrl = $('.source:contains("Dossier sur") a')[0].href;
+					project.pltUrl = $('.source:contains("Dossier sur") a')[0].attribs.href;
 				} catch(e) {}
 				deferred.resolve(project);
 			}

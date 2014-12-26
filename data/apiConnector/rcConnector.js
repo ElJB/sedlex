@@ -1,8 +1,6 @@
-var Crawler = require("crawler").Crawler,
+var Crawler = require("crawler"),
 	path = require('path'),
 	url = require('url'),
-	debug = require('../../debug.js'),
-	log = require('../../log.js'),
 	connector = {},
 	assert = require('assert'),
 	Q = require('Q');
@@ -47,7 +45,7 @@ connector.loadIntervention = function(project){
 			if(err){
 				reject(err);
 			} else {
-				debug("Grabbed " + result.body.length + " bytes for " + extractLawFromUrl.exec(result.uri)[1]);
+				console.log("Grabbed " + result.body.length + " bytes for " + extractLawFromUrl.exec(result.uri)[1]);
 				resolve([extractLawFromUrl.exec(result.uri)[1],
 					new Debates(result.body)]);
 			}
