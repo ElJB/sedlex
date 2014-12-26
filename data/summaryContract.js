@@ -4,13 +4,13 @@ var contract = {},
 
 contract.tables = {};
 var mysql = new mysqlHelper({
-	connectionLimit : 10,
+	connectionLimit : process.env.MYSQLCONNECTLIMIT,
 	host            : process.env.MYSQLHOST,
 	user            : process.env.MYSQLUSER,
 	password        : process.env.MYSQLPASSWORD,
 	database		: 'agora',
-	connectTimeout	: 30000,
-	acquireTimeout	: 30000
+	connectTimeout	: process.env.MYSQLCONNECTTIMEOUT,
+	acquireTimeout	: process.env.MYSQLACQUIRETIMEOUT
 });
 var Contract = mysql.Contract;
 
