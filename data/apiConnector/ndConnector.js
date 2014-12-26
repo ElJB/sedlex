@@ -7,7 +7,7 @@ var Crawler = require("crawler"),
 	url = require('url'),
 	connector = {},
 	assert = require('assert'),
-	Q = require('Q');
+	Q = require('q');
 
 
 var crawler = new Crawler({
