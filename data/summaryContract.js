@@ -9,7 +9,8 @@ var mysql = new mysqlHelper({
 	user            : process.env.MYSQLUSER,
 	password        : process.env.MYSQLPASSWORD,
 	database		: 'agora',
-	acquireTimeout	: 20000
+	connectTimeout	: 30000,
+	acquireTimeout	: 30000
 });
 var Contract = mysql.Contract;
 
