@@ -76,10 +76,7 @@ Q.all([connector.getSummaries(), contract.lawMaxDate()])
 
 	if( project.pltUrl ){
 		contract.updateLawWithND(project)
-		.catch(function(e){
-			console.log("DB error");
-			log(e);
-		});
+		.catch(log);
 	}
 })
 .then(function(){
