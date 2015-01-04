@@ -3,13 +3,13 @@
   "description": "Backend for the agora app",
   "author": "Guillaume Boniface <guillaume.boniface@gmail.com>",
   "dependencies": {
-    "pg": "*",
     "simpletsets": "*",
     "q": "*",
     "xml2js": "*",
     "vie-publique": "*",
-    "alpage-connector": "*",
-    "crawler": "*"
+    "crawler": "*",
+    "express": "*",
+    "compression": "*"
   },
   "scripts": {
     "test": "DEBUG=true node test/script.js"
