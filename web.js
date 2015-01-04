@@ -17,7 +17,9 @@ app.get('/law/*', function(req, res){
 Server starting to listen
 */
 
-var port = process.env.PORT || 5000;
+console.log(process.env.PORT);
+
+var port = process.env.PORT || 80;
 server.listen(port, function() {
 	console.log("Listening on " + port);
 });
