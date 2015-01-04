@@ -1,4 +1,4 @@
-var contract = require('../data/summaryContract.js'),
+var contract = require('../data/contract.js'),
 	connector = require('vie-publique'),
 	ndConnector = require('nd-connector'),
 	Q = require('q'),
