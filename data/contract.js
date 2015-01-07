@@ -44,7 +44,8 @@ contract.tables.law = new Contract({
 	{
 		name: "date",
 		type: "TIMESTAMP NOT NULL"
-	},{
+	},
+	{
 		name: "status",
 		type: "INTEGER NOT NULL"
 	},
@@ -70,9 +71,34 @@ contract.tables.law = new Contract({
 	}
 });
 
-contract.findAllLawsUntil = function findAllLawsUntil(date){
+contract.tables.party = new Contract({
+	tableName: "party",
+	columns: [
+	{
+		name: "_id",
+		type: "SERIAL"
+	},
+	{
+		name: "name",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "color",
+		type: "TEXT NOT NULL"
+	},
+	{
+		name: "abbreviation",
+		type: "TEXT NOT NULL"
+	}
+	],
+	constraint: {
+		primaryKey: ["name"]
+	}
+});
+
+contract.findAllLawsUntil = function findAllLawsUntil(date, page){
 	//TODO: validate date format
-	return mysql.query("law", null, "date > ?", date);
+	return mysql.query("law", null, "date > ?", date, [10, 10 * page]);
 }
 
 contract.findLawById = function findLawById(id){
