@@ -80,7 +80,7 @@ contract.tables.party = new Contract({
 	},
 	{
 		name: "name",
-		type: "TEXT NOT NULL"
+		type: "VARCHAR(200)"
 	},
 	{
 		name: "color",
@@ -98,6 +98,9 @@ contract.tables.party = new Contract({
 
 contract.findAllLawsUntil = function findAllLawsUntil(date, page){
 	//TODO: validate date format
+	if( !page ){
+		page = 0;
+	}
 	return mysql.query("law", null, "date > ?", date, [10, 10 * page]);
 }
 
