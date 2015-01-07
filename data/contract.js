@@ -72,11 +72,11 @@ contract.tables.law = new Contract({
 
 contract.findAllLawsUntil = function findAllLawsUntil(date){
 	//TODO: validate date format
-	return mysql.query("law", contract.tables.law.getColumns(), "date > ?", date);
+	return mysql.query("law", "*", "date > ?", date);
 }
 
 contract.findLawById = function findLawById(id){
-	return mysql.query("law", contract.tables.law.getColumns(), "_id = ?", id);
+	return mysql.query("law", "*", "_id = ?", id);
 }
 
 contract.insert = function insert(uri, columns, data){
