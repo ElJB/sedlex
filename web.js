@@ -7,13 +7,17 @@ var express = require('express')
 app.use(compression({}));
 
 app.get('/laws', function(req, res){
-	contract.findAllLawsUntil(new Date(2010,0,0))
+	var page = 0;
+	if (req.query.page){
+		page = parseInt(req.query.page);
+	}
+	contract.findAllLawsUntil(new Date(2010,0,0), page)
 	.then(function(results){
 		raw_laws = results[0];
 		laws = [];
 		raw_laws.forEach(function(raw_law){
 			law = {
-			"_id" : raw_law['id'],
+			"_id" : raw_law['_id'],
 			"last-update" : raw_law['date'],
 			"title" : raw_law['law_title'],
 			"summary" : raw_law['summary'],
