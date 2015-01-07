@@ -13,12 +13,12 @@ app.get('/laws', function(req, res){
 		laws = [];
 		raw_laws.forEach(function(raw_law){
 			law = {
-			"_id" : 1, // TODO il manque l'id dans ce que renvoie mysql
+			"_id" : raw_law['id'],
 			"last-update" : raw_law['date'],
 			"title" : raw_law['law_title'],
 			"summary" : raw_law['summary'],
 			"progression" : ["loi-ratification_ordonnance"], //raw_law['status'] TODO fonction status to progression
-			"category" : raw_law['tags'] // TODO tags avec ids (pour pouvoir filtrer par tags dans l'appli)
+			"category" : JSON.parse(raw_law['tags']) // TODO tags avec ids (pour pouvoir filtrer par tags dans l'appli)
 			};
 			laws.push(law);
 		});
