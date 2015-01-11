@@ -2,56 +2,35 @@ var express = require('express')
 	, app = express()
 	, compression = require('compression')
 	, server = require('http').createServer(app)
-	, contract = require('./data/contract.js');
+	, models = require('./models');
 
 app.use(compression({}));
+
+var LAWS_PER_PAGE = 10;
 
 app.get('/laws', function(req, res){
 	var page = 0;
 	if (req.query.page){
 		page = parseInt(req.query.page);
 	}
-	contract.findAllLawsUntil(new Date(2010,0,0), page)
-	.then(function(results){
-		raw_laws = results[0];
-		laws = [];
-		raw_laws.forEach(function(raw_law){
-			law = {
-			"_id" : raw_law['_id'],
-			"last-update" : raw_law['date'],
-			"title" : raw_law['law_title'],
-			"summary" : raw_law['summary'],
-			"progression" : ["loi-ratification_ordonnance"], //raw_law['status'] TODO fonction status to progression
-			"category" : JSON.parse(raw_law['tags']) // TODO tags avec ids (pour pouvoir filtrer par tags dans l'appli)
-			};
-			if(raw_law['nd_law_title']){
-				law['title'] = raw_law['nd_law_title'];
-			}
-			laws.push(law);
-		});
-
+	models.Law.findAll({
+		limit: LAWS_PER_PAGE,
+		offset: LAWS_PER_PAGE*page,
+		order: "createdAt DESC" ,
+		include: [models.Category]
+	})
+	.then(function(laws){
 		res.json({ laws: laws});
 	}).catch(log);
 });
 
 app.get('/laws/:id', function(req, res){
-	contract.findLawById(req.params.id)
-	.then(function(results){
-		raw_law = results[0][0];
-		law = {
-		"_id" : raw_law['_id'],
-		"last-update" : raw_law['date'],
-		"title" : raw_law['law_title'],
-		"summary" : raw_law['summary'],
-		"content" : raw_law['content'],
-		"progression" : ["loi-ratification_ordonnance"], //raw_law['status'] TODO fonction status to progression
-		"category" : JSON.parse(raw_law['tags']) // TODO tags avec ids (pour pouvoir filtrer par tags dans l'appli)
-		};
-		if(raw_law['nd_law_title']){
-			law['title'] = raw_law['nd_law_title'];
-		}
-
-		res.json({law: law});
+	models.Law.find({
+		where: { id: req.params.id},
+		include: [models.Category]
+	})
+	.then(function(law){
+		res.json({law:law})
 	}).catch(log);
 });
 

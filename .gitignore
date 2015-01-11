@@ -9,3 +9,7 @@ ehthumbs.db
 Thumbs.db
 mocks/
 graphics/
+
+
+# local configuration file
+config/config.json

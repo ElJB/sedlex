@@ -2,21 +2,26 @@
   "name": "agora",
   "description": "Backend for the agora app",
   "author": "Guillaume Boniface <guillaume.boniface@gmail.com>",
+  "contributors": [{
+    "name": "Jean-Baptiste",
+    "email": "jbaptiste.cid@gmail.com"
+  }],
   "dependencies": {
-    "simplesets": "*",
-    "q": "*",
-    "xml2js": "*",
-    "vie-publique": "*",
+    "compression": "*",
     "crawler": "*",
     "express": "*",
-    "compression": "*",
-    "mysql": "*"
+    "mysql": "*",
+    "q": "*",
+    "sequelize": "^2.0.0-rc7",
+    "sequelize-cli": "^1.0.2",
+    "simplesets": "*",
+    "vie-publique": "*",
+    "xml2js": "*"
   },
   "scripts": {
     "test": "DEBUG=true node test/script.js"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "preferGlobal": true,
   "private": true
 }
