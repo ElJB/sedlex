@@ -35,7 +35,7 @@ Q.all([connector.getSummaries(), models.Law.max("vp_published")])
 					defaults: {color: "2222FF"}
 				})
 				.then(function(category){
-					law.addCategory(category);
+					law.addCategory(category, {source: "vie-publique"});
 				});
 			});
 		});
